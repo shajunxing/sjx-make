@@ -143,13 +143,19 @@ int main(int argc, char **argv) {
 |`void append(char **dest, ...)`|Append multiple strings sequentially to end of `dest`, `dest` must be dynamically allocated.|
 |`void async(const char *cmd)`|Parallel run command line `cmd`. Maximum number of workers equals to num of cpu cores. If return value is not 0, print error message and exit program.|
 |`void await()`|Wait for all workers to finish.|
+|`int cd(const char *path)`|Same as `chdir`.|
 |`char *concat(...)`|Concatenate multiple strings, return string should be freed when used up.|
+|`void cp(const char *to, const char *from)`|Copy file from `from` to `to`.|
+|`char *cwd()`|Wrapper of `getcwd`, no parameter, return string no need to be freed.|
+|`char *dirname(char *path)`|Same behavior on windows as posix, return string no need to be freed.|
 |`bool endswith(const char *str, ...)`|Determine whether `str` ends with any of rest parameters.|
 |`bool equals(const char *str, ...)`|Determine whether `str` are equal to any of rest parameters.|
 |`char *format(const char *fmt, ...)`|Format string like `printf`, return string should be freed when used up.|
 |`char *join(char *sep, ...)`|Join multiple strings by given seperator `sep`, return string should be freed when used up.|
 |`void listdir(const char *dir, void (*callback)(const char *dir, const char *base, const char *ext))`|Iterate all items in directory `dir`, whether `dir` ends with or without path seperator doesn't matter, for each item invoke `callback`, set 3 parameters: `dir` always ends with path seperator. If item is file, combination is complete file path, `ext` will be `""` if file has no extension. If is directory, `dir` will be subdirectory's full path, `base` and `ext` will be `NULL`.|
 |`double max(...)`|Take one or more double values, returns maximum one.|
+|`int md(const char *path)`|Same as `mkdir`, under posix, second argument will be set to `0777`.|
 |`double mtime(...)`|Get one or more file modification utc time and returns latest one, value for non-existent file is -DBL_MAX|
+|`int rd(const char *path)`|Same as `rmdir`.|
 |`void run(const char *cmd)`|Run command line `cmd`. If return value is not 0, print error message and exit program.|
 |`bool startswith(const char *str, ...)`|Determine whether `str` starts with any of rest parameters.|
