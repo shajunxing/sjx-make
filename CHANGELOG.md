@@ -1,4 +1,4 @@
-# latest
+# 2025-07-16
 
 Added some predefined build commands such as `cc_xxx()` `ld_xxx()`, why using macro instead of function is because macro can correctly log position when error happens, see `make.c` in <https://github.com/shajunxing/banana-script> for example.
 
@@ -12,14 +12,14 @@ Reworked makefile, now fully support msvc, mingw and linux gcc, static build wil
 
 Added default configuration for msvc, mingw and linux gcc, see <https://github.com/shajunxing/banana-script/blob/main/make.c> for example.
 
-# 2025.05.31 2025.06.26 2025.06.29
+# 2025-05-31 2025.06.26 2025.06.29
 
 Changed `compiler` `os` from const enum to macro definition, now they can be used in macro conditions.
 
-# 2025.05.16
+# 2025-05-16
 
 Added asynchronous mechanism, now you can run tasks concurrently equal to maximum number of CPU cores.
 
-# 2024.12.02
+# 2024-12-02
 
 First commit.
