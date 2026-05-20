@@ -1,162 +1,65 @@
-# SJX Make, only one .h required, direct write script with C, replace those annoying gmake, nmake, cmake...
+# 纯c实现的智能make程序，全自动，无需makefile，适合c项目
 
-This article is openly licensed via [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+之前发布的纯c单h文件make系统 <https://github.com/shajunxing/sjx-make/make.h.md> ,依旧需要在项目源文件每次变更后调整编译脚本，太麻烦。于是我一鼓作气用400行代码完成了“一次编写，处处运行”，自动分析头文件依赖关系，自动增量、并行编译。
 
-[English Version](README.md) | [Chinese Version](README_zhCN.md)
+约定项目目录结构是这样的：
 
-Project Address: <https://github.com/shajunxing/banana-nomake>
-
-I don't like those build systems, I think they break their own belief "mechanism better than policy" and "keep it simple stupid". Why should one learn those ugly and rigid rules? Wouldn't a Turing-Complete programming language be better? Since C compiler is essential, encapsulate necessary functions into a header file, then I can happily write scripts in C, right? Most important points I summarized as follows: 
-
-1. **Comparison of file timestamps**
-2. **Serial and parallel execution of commands**
-
-Customers would be happy too, as they won't need to install any additional build systems, they can simply type `gcc script.c && ./a.out` or `cl script.c && script.exe`, isn't it quite easy?
-
-For example, in a certain project, source code is in `src` directory, since C language string literals support direct concatenation, it's really easy to define file names, directories, and command lines.
-
-```c
-#define src_dir "src" pathsep
-// ...
-#define var_h src_dir "var.h"
-#define var_c src_dir "var.c"
-// ...
-#if compiler == msvc
-    #define cc "cl /nologo /c /W3 /MD /Zp /utf-8 /std:clatest /O2 /Fo"
-    #define ld "link /nologo /incremental:no /nodefaultlib /out:"
-// ...
+```
+项目名
+  +-- src
 ```
 
-Dependency relationship in traditional makefile, like `example_exe: example_obj var_h js_data_h js_common_h`, basically just compares modification times of files before and after colon. If before is older than after, it runs following commands. So, if you write it directly in C, it becomes a lot clearer and more straightforward.
+所有源代码头文件都平铺在src里，不再分子目录，当然也可以有子目录，但我比较懒，自己的项目都很简单。
 
-```c
-if (mtime(example_exe) < mtime(example_obj, var_h, js_data_h, js_common_h)) {
-    run(link_example);
-}
+执行 `smake`，会编译所有c文件，然后把所有不带main函数的合并为库文件，默认名字同项目名。所有带main函数的各自单独生成同名可执行程序。
+
+编译后的目录如下：
+
+```
+项目名
+  +-- bin 所有可执行程序和库文件
+  +-- src
+  +-- tmp 中间过程产生的其它文件，比如目标文件
 ```
 
-Because C is Turing-Complete programming language, it can easily implement more complex and flexible logic, which is something those make systems can't compare to. Here's a complete example where I use `async()` and `await()` to execute commands parallely, and it's pretty straightforward in C. On the other hand, even if those make systems could pull it off, configuration rules would be all over the place and hard to understand.
+编译支持调试和发布模式，默认是release。支持动态链接（也就是生成动态库.dll .so）和静态链接，默认是dynamic。支持windows和posix兼容系统。
 
-```c
-#include "../banana-nomake/make.h"
+想玩的可以在 <https://github.com/shajunxing/sjx-make/releases> 下载 windows 可执行程序。命令行参数如下：
 
-#define bin_dir "bin" pathsep
-#define build_dir "build" pathsep
-#define src_dir "src" pathsep
-#define banana_script_src_dir ".." pathsep "banana-script" pathsep "src" pathsep
-#define js_common_h banana_script_src_dir "js-common.h"
-#define js_common_c banana_script_src_dir "js-common.c"
-#define js_common_o build_dir "js_common" objext
-#define js_data_h banana_script_src_dir "js-data.h"
-#define js_data_c banana_script_src_dir "js-data.c"
-#define js_data_o build_dir "js_data" objext
-#define var_h src_dir "var.h"
-#define var_c src_dir "var.c"
-#define var_o build_dir "var" objext
-#define example_c src_dir "example.c"
-#define example_o build_dir "example" objext
-#define example_exe bin_dir "example" exeext
-#if compiler == msvc
-    #define cc "cl /nologo /c /W3 /MD /Zp /utf-8 /std:clatest /O2 /Fo"
-    #define ld "link /nologo /incremental:no /nodefaultlib /out:"
-    #define extra_libs " msvcrt.lib libvcruntime.lib ucrt.lib kernel32.lib user32.lib"
-#else
-    #define cc "gcc -c -Wall -O3 -o "
-    #define ld "gcc -fvisibility=hidden -fvisibility-inlines-hidden -static -static-libgcc -s -Wl,--exclude-all-symbols -o "
-    #define extra_libs ""
-#endif
-#define compile_js_common cc js_common_o " " js_common_c
-#define compile_js_data cc js_data_o " " js_data_c
-#define compile_var cc var_o " " var_c
-#define compile_example cc example_o " " example_c
-#define link_example ld example_exe " " example_o " " var_o " " js_data_o " " js_common_o extra_libs
-
-void build() {
-    mkdir(bin_dir);
-    mkdir(build_dir);
-    // DON'T compare obj because it is generated asynchronously
-    if (mtime(js_common_o) < mtime(js_common_h, js_common_c)) {
-        async(compile_js_common);
-    }
-    if (mtime(js_data_o) < mtime(js_data_h, js_data_c, js_common_h)) {
-        async(compile_js_data);
-    }
-    if (mtime(var_o) < mtime(var_h, var_c, js_data_h, js_common_h)) {
-        async(compile_var);
-    }
-    if (mtime(example_o) < mtime(example_c, var_h, js_data_h, js_common_h)) {
-        async(compile_example);
-    }
-    await();
-    if (mtime(example_exe) < mtime(example_o, var_o, js_data_o, js_common_o)) {
-        run(link_example);
-    }
-}
-
-void cleanup(const char *dir, const char *base, const char *ext) {
-    if (base) {
-        char *file_name = concat(dir, base, ext);
-        remove(file_name);
-        free(file_name);
-    } else {
-        listdir(dir, cleanup);
-        rmdir(dir);
-    }
-}
-
-int main(int argc, char **argv) {
-    if (argc == 1) {
-        build();
-        return EXIT_SUCCESS;
-    } else if (argc == 2) {
-        if (equals(argv[1], "clean")) {
-            listdir(bin_dir, cleanup);
-            listdir(build_dir, cleanup);
-            return EXIT_SUCCESS;
-        } else if (equals(argv[1], "-h", "--help")) {
-            ;
-        } else {
-            printf("Invalid target: %s\n", argv[1]);
-        }
-    } else {
-        printf("Too many arguments\n");
-    }
-    printf("Usage: %s [clean|-h|--help]\n", argv[0]);
-    return EXIT_FAILURE;
-}
+```
+C:\>smake --help
+Usage: smake [clean|debug|release|mono|static|dynamic|-h|--help]
+  clean             cleanup generated binaries
+  debug             with debug symbols
+  release           no debug symbols, optimize for speed
+  mono              generate monolithic .exe
+  static            static build, link with dynamic crt
+  dynamic           seperate to .dll .exe, link with dynamic crt
+Default is: release + static
+  -h, --help        show help
+More options can be set in "makefile", see examples.
 ```
 
-Below are detailed API description:
+同时也支持简单的配置文件 smake.conf，例如（# 开头的是注释行）：
 
-|Constants|Description|
-|-|-|
-|`#define compiler`|Compiler type, can be one of `msvc` `gcc`.|
-|`#define dllext`|File extension of shared library, e.g `".dll"` `".so"`|
-|`#define exeext`|File extension of executable, e.g `".exe"`|
-|`#define libext`|File extension of library, e.g `".lib"` `".a"`|
-|`#define objext`|File extension of compiled object, e.g `".obj"` `".o"`|
-|`#define os`|Operating system type, can be one of `windows` `posix`.|
-|`#define pathsep`|File system path seperator, , e.g `"\\"` `"/"`|
+```
+# Configuration file for SJX Smart Make System.
+# Values shown below are default values.
+#   Build mode, "d" is with debug symbols, "r" is no debug symbols and optimize for speed
+#     build=r
+#   Linking model, "m" is all static, "s" static project and dynamic crt, "d" is all dynamic
+#     linkage=s
+#   Pattern to match main function
+#     main_pat=int main(
+#   Lib and dll name, default is project folder name
+#     lib_name=
+#   Extra options for linker
+#     ex_opts_windows=
+#     ex_opts_posix=
 
-|Functions|Description|
-|-|-|
-|`void append(char **dest, ...)`|Append multiple strings sequentially to end of `dest`, `dest` must be dynamically allocated.|
-|`void async(const char *cmd)`|Parallel run command line `cmd`. Maximum number of workers equals to num of cpu cores. If return value is not 0, print error message and exit program.|
-|`void await()`|Wait for all workers to finish.|
-|`int cd(const char *path)`|Same as `chdir`.|
-|`char *concat(...)`|Concatenate multiple strings, return string should be freed when used up.|
-|`void cp(const char *to, const char *from)`|Copy file from `from` to `to`.|
-|`char *cwd()`|Wrapper of `getcwd`, no parameter, return string no need to be freed.|
-|`char *dirname(char *path)`|Same behavior on windows as posix, return string no need to be freed.|
-|`bool endswith(const char *str, ...)`|Determine whether `str` ends with any of rest parameters.|
-|`bool equals(const char *str, ...)`|Determine whether `str` are equal to any of rest parameters.|
-|`char *format(const char *fmt, ...)`|Format string like `printf`, return string should be freed when used up.|
-|`char *join(char *sep, ...)`|Join multiple strings by given seperator `sep`, return string should be freed when used up.|
-|`void listdir(const char *dir, void (*callback)(const char *dir, const char *base, const char *ext))`|Iterate all items in directory `dir`, whether `dir` ends with or without path seperator doesn't matter, for each item invoke `callback`, set 3 parameters: `dir` always ends with path seperator. If item is file, combination is complete file path, `ext` will be `""` if file has no extension. If is directory, `dir` will be subdirectory's full path, `base` and `ext` will be `NULL`.|
-|`double max(...)`|Take one or more double values, returns maximum one.|
-|`int md(const char *path)`|Same as `mkdir`, under posix, second argument will be set to `0777`.|
-|`double mtime(...)`|Get one or more file modification utc time and returns latest one, value for non-existent file is -DBL_MAX|
-|`int rd(const char *path)`|Same as `rmdir`.|
-|`void run(const char *cmd)`|Run command line `cmd`. If return value is not 0, print error message and exit program.|
-|`bool startswith(const char *str, ...)`|Determine whether `str` starts with any of rest parameters.|
+# GetUserNameA requires advapi32.lib
+ex_opts_windows=user32.lib gdi32.lib imm32.lib advapi32.lib winmm.lib
+# suppress fucking stupid readline warnings "Using 'xxx' in statically linked applications requires at runtime the shared libraries ..."
+ex_opts_posix=-lm -lreadline -lncurses -ltinfo -Wl,--no-warnings
+```
 
