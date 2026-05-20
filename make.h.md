@@ -1,10 +1,4 @@
-# Banana NoMake，只需一个.h文件，直接使用C语言写脚本，取代那些令人生厌的gmake、nmake、cmake......
-
-本文使用 [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) 许可。
-
-[英文版](README.md) | [中文版](README_zhCN.md)
-
-项目地址：<https://github.com/shajunxing/banana-nomake>
+# SJX Make，只需一个.h文件，直接使用C语言写脚本，取代那些令人生厌的gmake、nmake、cmake......
 
 我不喜欢那些构建系统，我认为他们带头违反了他们自己制定的“机制优于策略”和“KISS”原则。为什么要学习那些丑陋死板的规则？图灵完备的编程语言不更好吗？既然C编译器是必备的，那么把必要的功能封装进一个头文件里面，不就能开心地用C语言写脚本了？我总结最核心的就这两条：
 
