@@ -22,7 +22,7 @@
   +-- tmp 中间过程产生的其它文件，比如目标文件
 ```
 
-编译支持调试和发布模式，默认是release。支持动态链接（也就是生成动态库.dll .so）和静态链接，默认是dynamic。支持windows和posix兼容系统。
+编译支持调试和发布模式；支持动态（也就是生成动态库.dll .so）和静态链接；支持windows和posix兼容系统。
 
 想玩的可以在 <https://github.com/shajunxing/sjx-make/releases> 下载 windows 可执行程序。命令行参数如下：
 
