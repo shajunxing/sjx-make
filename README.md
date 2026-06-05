@@ -1,6 +1,6 @@
-# 纯c实现的智能make程序，无需makefile脚本，全自动，适合c项目
+# SJX Make，纯C实现的智能make程序，无需makefile脚本，全自动，适合c项目
 
-之前发布的纯c单h文件make系统 <https://github.com/shajunxing/sjx-make/blob/main/make.h.md> ,依旧需要在项目源文件每次变更后调整编译脚本，太麻烦。于是我一鼓作气用400行代码完成了“一次编写，处处运行”，自动分析头文件依赖关系，自动增量、并行编译。
+之前发布的纯c单h文件make系统 <https://github.com/shajunxing/sjx-make/blob/main/make.h.md> ,依旧需要在项目源文件每次变更后调整编译脚本，太麻烦。于是我一怒之下用400行代码完成了“一次编写，处处运行”，自动分析头文件依赖关系，自动增量、并行编译。
 
 约定项目目录结构是这样的：
 
