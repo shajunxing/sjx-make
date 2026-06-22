@@ -63,3 +63,4 @@ ex_opts_windows=user32.lib gdi32.lib imm32.lib advapi32.lib winmm.lib
 ex_opts_posix=-lm -lreadline -lncurses -ltinfo -Wl,--no-warnings
 ```
 
+smake 不开源。（AI时代，开源已死。）
