@@ -53,14 +53,16 @@ More options can be set in "makefile", see examples.
 #     main_pat=int main(
 #   Lib and dll name, default is project folder name
 #     lib_name=
-#   Extra options for linker
-#     ex_opts_windows=
-#     ex_opts_posix=
+#   Extra options for compiler and linker
+#     cc_opts_windows=
+#     cc_opts_posix=
+#     ld_opts_windows=
+#     ld_opts_posix=
 
 # GetUserNameA requires advapi32.lib
-ex_opts_windows=user32.lib gdi32.lib imm32.lib advapi32.lib winmm.lib
+ld_opts_windows=user32.lib gdi32.lib imm32.lib advapi32.lib winmm.lib
 # suppress fucking stupid readline warnings "Using 'xxx' in statically linked applications requires at runtime the shared libraries ..."
-ex_opts_posix=-lm -lreadline -lncurses -ltinfo -Wl,--no-warnings
+ld_opts_posix=-lm -lreadline -lncurses -ltinfo -Wl,--no-warnings
 ```
 
 smake 不开源。（AI时代，开源已死。）
